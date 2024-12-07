@@ -1,106 +1,6 @@
 [
   {
     "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "AdminCreateUser",
-    "RelativePath": "api/Account/AdminCreateUser",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "registerUser",
-        "Type": "AppointmentDoctor.DTO.RegisterUserDTO",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "AssignRole",
-    "RelativePath": "api/Account/AssignRole",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "username",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "role",
-        "Type": "System.String",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "CreateRoles",
-    "RelativePath": "api/Account/CreateRoles",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "DeleteUser",
-    "RelativePath": "api/Account/DeleteUser",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "username",
-        "Type": "System.String",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "GetAllUsers",
-    "RelativePath": "api/Account/GetAllUsers",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "pageNumber",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "pageSize",
-        "Type": "System.Int32",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "GetUserRoles",
-    "RelativePath": "api/Account/GetUserRoles",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "username",
-        "Type": "System.String",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
     "Method": "Login",
     "RelativePath": "api/Account/Login",
     "HttpMethod": "POST",
@@ -108,7 +8,7 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "login",
+        "Name": "loginDTO",
         "Type": "AppointmentDoctor.DTO.LoginDTO",
         "IsRequired": true
       }
@@ -117,25 +17,15 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "Logout",
-    "RelativePath": "api/Account/Logout",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "Register",
-    "RelativePath": "api/Account/Register",
+    "Method": "RegisterAdmin",
+    "RelativePath": "api/Account/RegisterAdmin",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "registerUser",
-        "Type": "AppointmentDoctor.DTO.RegisterUserDTO",
+        "Name": "registerAdminDTO",
+        "Type": "RegisterAdminDTO",
         "IsRequired": true
       }
     ],
@@ -143,20 +33,31 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "UpdateUser",
-    "RelativePath": "api/Account/UpdateUser",
-    "HttpMethod": "PUT",
+    "Method": "RegisterDoctor",
+    "RelativePath": "api/Account/RegisterDoctor",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "username",
-        "Type": "System.String",
-        "IsRequired": false
-      },
+        "Name": "registerDoctorDTO",
+        "Type": "RegisterDoctorDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
+    "Method": "RegisterPatient",
+    "RelativePath": "api/Account/RegisterPatient",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
       {
-        "Name": "updateUser",
-        "Type": "AppointmentDoctor.DTO.UpdateUserDTO",
+        "Name": "registerPatientDTO",
+        "Type": "RegisterPatientDTO",
         "IsRequired": true
       }
     ],

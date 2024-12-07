@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentDoctor.Models
 {
@@ -7,18 +7,18 @@ namespace AppointmentDoctor.Models
     {
         public AppDbContext(DbContextOptions options) : base(options) { }
 
-        public DbSet<Specialty> Specialties { get; set; } // Ajouter la table Specialties
+        public DbSet<Specialty> Specialties { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            // Configurer la relation entre ApplicationUser et Specialty
-            builder.Entity<ApplicationUser>()
-                   .HasOne(a => a.Specialty)
-                   .WithMany()
-                   .HasForeignKey(a => a.SpecialtyId)
-                   .OnDelete(DeleteBehavior.Restrict);
+            // Configurer les tables séparées pour Patient et Doctor
+            builder.Entity<Patient>()
+                .ToTable("Patients");  // Table spécifique pour Patient
+
+            builder.Entity<Doctor>()
+                .ToTable("Doctors");  // Table spécifique pour Doctor
         }
     }
 }
