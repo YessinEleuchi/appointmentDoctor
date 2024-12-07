@@ -5,8 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System;
+using AppointmentDoctor.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
+
 
 // Configurer la base de données
 var cnx = builder.Configuration.GetConnectionString("dbcon");

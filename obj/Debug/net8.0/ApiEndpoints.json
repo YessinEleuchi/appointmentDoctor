@@ -163,6 +163,69 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "AppointmentDoctor.Controllers.SpecialtyController",
+    "Method": "GetAllSpecialties",
+    "RelativePath": "api/Specialty",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.SpecialtyController",
+    "Method": "AddSpecialty",
+    "RelativePath": "api/Specialty",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "specialty",
+        "Type": "AppointmentDoctor.Models.Specialty",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.SpecialtyController",
+    "Method": "UpdateSpecialty",
+    "RelativePath": "api/Specialty/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "specialty",
+        "Type": "AppointmentDoctor.Models.Specialty",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.SpecialtyController",
+    "Method": "DeleteSpecialty",
+    "RelativePath": "api/Specialty/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "AppointmentDoctor.Controllers.WeatherForecastController",
     "Method": "Get",
     "RelativePath": "WeatherForecast",
