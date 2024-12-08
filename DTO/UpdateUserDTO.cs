@@ -4,5 +4,6 @@
     {
         public string? NewUsername { get; set; }
         public string? Email { get; set; }
+       
     }
 }

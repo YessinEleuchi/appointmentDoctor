@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-public class RegisterUserDTO
+namespace AppointmentDoctor.DTO
 {
+    public class RegisterDoctor
+    {
         [Required]
         public string Username { get; set; }
         [Required]
@@ -12,9 +14,7 @@ public class RegisterUserDTO
         [EmailAddress]
         public string Email { get; set; }
 
-        public string Role { get; set; } = "patient"; // Rôle par défaut
-
-
-
-  
+        [Required]
+        public string Specialty { get; set; }
+    }
 }

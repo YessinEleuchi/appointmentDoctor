@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentDoctor.Controllers
 {
@@ -18,15 +19,16 @@ namespace AppointmentDoctor.Controllers
         private readonly UserManager<ApplicationUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
         private readonly IConfiguration configuration;
+        private readonly AppDbContext _context;
 
-        public AccountController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+
+        public AccountController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration , AppDbContext context)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.configuration = configuration;
+            _context = context;
         }
-
-        // Inscription d'un utilisateur
         [HttpPost("Register")]
         public async Task<IActionResult> Register(RegisterUserDTO registerUser)
         {
@@ -39,11 +41,11 @@ namespace AppointmentDoctor.Controllers
             var user = await userManager.FindByNameAsync(registerUser.Username);
             if (user != null)
             {
-                return BadRequest("Utilisateur existant");
+                return BadRequest("Cet utilisateur existe déjà.");
             }
 
             // Créer un nouvel utilisateur
-            ApplicationUser applicationUser = new ApplicationUser
+            var applicationUser = new ApplicationUser
             {
                 UserName = registerUser.Username,
                 Email = registerUser.Email
@@ -51,17 +53,28 @@ namespace AppointmentDoctor.Controllers
 
             // Créer l'utilisateur avec son mot de passe
             var result = await userManager.CreateAsync(applicationUser, registerUser.Password);
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                // Assigner un rôle (si le rôle n'est pas spécifié, "patient" sera le rôle par défaut)
-                string roleToAssign = string.IsNullOrEmpty(registerUser.Role) ? "patient" : registerUser.Role;
-                await userManager.AddToRoleAsync(applicationUser, roleToAssign);
-
-                return Ok(new { username = registerUser.Username, email = registerUser.Email });
+                return BadRequest(result.Errors);
             }
 
-            return BadRequest(result.Errors);
+            // Assigner systématiquement le rôle "patient"
+            string roleToAssign = "patient";
+            if (!await roleManager.RoleExistsAsync(roleToAssign))
+            {
+                return BadRequest("Le rôle 'patient' n'existe pas. Contactez l'administrateur.");
+            }
+
+            await userManager.AddToRoleAsync(applicationUser, roleToAssign);
+
+            return Ok(new
+            {
+                username = registerUser.Username,
+                email = registerUser.Email,
+                role = roleToAssign
+            });
         }
+
 
         // Connexion d'un utilisateur
         [HttpPost("Login")]
@@ -203,9 +216,46 @@ namespace AppointmentDoctor.Controllers
             return Ok("Rôles créés avec succès.");
         }
 
-        [HttpPost("AdminCreateUser")]
+        [HttpPost("register/doctor")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> AdminCreateUser(RegisterUserDTO registerUser)
+        public async Task<IActionResult> RegisterDoctor(RegisterDoctor model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Vérifiez que la spécialité existe dans la base de données
+            var speciality = await _context.Specialities
+                .FirstOrDefaultAsync(s => s.Name == model.Specialty);
+            if (speciality == null)
+            {
+                return BadRequest("La spécialité spécifiée n'existe pas.");
+            }
+
+            // Créez un utilisateur avec les détails fournis
+            var user = new ApplicationUser
+            {
+                UserName = model.Username,
+                Email = model.Email,
+                SpecialtyId = speciality.Id, // Associer l'ID de la spécialité
+            };
+
+            // Créez l'utilisateur avec le mot de passe
+            var result = await userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            // Assignez le rôle de professionnel médical
+            await userManager.AddToRoleAsync(user, "doctor");
+
+            return Ok($"Enregistrement réussi du Doctor : {model.Username}");
+        }
+        [HttpPost("AdminCreateAdminUser")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> AdminCreateAdminUser(RegisterUserDTO registerUser)
         {
             if (!ModelState.IsValid)
             {
@@ -217,6 +267,13 @@ namespace AppointmentDoctor.Controllers
             if (userExists != null)
             {
                 return BadRequest("Cet utilisateur existe déjà.");
+            }
+
+            // Validez le rôle
+            var roleToAssign = string.IsNullOrEmpty(registerUser.Role) ? "admin" : registerUser.Role.ToLower();
+            if (roleToAssign != "admin")
+            {
+                return BadRequest("Le rôle doit être 'admin'.");
             }
 
             // Créez un nouvel utilisateur
@@ -232,17 +289,13 @@ namespace AppointmentDoctor.Controllers
                 return BadRequest(createResult.Errors);
             }
 
-            // Assignez un rôle spécifique ou "patient" par défaut
-            var roleToAssign = string.IsNullOrEmpty(registerUser.Role) ? "patient" : registerUser.Role;
-            if (!await roleManager.RoleExistsAsync(roleToAssign))
-            {
-                return BadRequest("Rôle non valide.");
-            }
-
+            // Assignez le rôle 'admin'
             await userManager.AddToRoleAsync(newUser, roleToAssign);
 
             return Ok($"Utilisateur {registerUser.Username} avec le rôle {roleToAssign} créé avec succès.");
         }
+
+
 
         [HttpPut("UpdateUser")]
         [Authorize(Roles = "admin")]

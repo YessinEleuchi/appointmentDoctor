@@ -1,8 +1,8 @@
 [
   {
     "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "AdminCreateUser",
-    "RelativePath": "api/Account/AdminCreateUser",
+    "Method": "AdminCreateAdminUser",
+    "RelativePath": "api/Account/AdminCreateAdminUser",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -136,6 +136,22 @@
       {
         "Name": "registerUser",
         "Type": "RegisterUserDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
+    "Method": "RegisterDoctor",
+    "RelativePath": "api/Account/register/doctor",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "AppointmentDoctor.DTO.RegisterDoctor",
         "IsRequired": true
       }
     ],
