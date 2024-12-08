@@ -1,14 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace AppointmentDoctor.Models
 {
-    public class Specialty
+    public class Speciality
     {
-        [Key]
         public int Id { get; set; }
+        public string Name { get; set; } // Nom de la spécialité
 
-        [Required]
-        [MaxLength(100)]
-        public string Name { get; set; }
     }
+
 }

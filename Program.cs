@@ -1,20 +1,22 @@
+using AppointmentDoctor.Models.Reposotries;
 using AppointmentDoctor.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using System;
-using AppointmentDoctor.Repositories;
+using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Ajouter les services nécessaires
-builder.Services.AddScoped<ISpecialtyRepository, SpecialtyRepository>();
 
 // Configurer la base de données
 var cnx = builder.Configuration.GetConnectionString("dbcon");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(cnx));
+
+builder.Services.AddScoped<ISpecialityRepository, SpecialityRepository>();
+
+
 
 // Configurer Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -40,7 +42,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Ajouter les services pour les contrôleurs, Swagger, etc.
+// Ajouter les services nécessaires
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -54,7 +56,7 @@ using (var scope = app.Services.CreateScope())
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-    // Créer les rôles 'admin', 'doctor', 'patient' s'ils n'existent pas
+    // Créer les rôles 'admin', 'doctor', 'patient' si ils n'existent pas
     string[] roles = { "admin", "doctor", "patient" };
     foreach (var role in roles)
     {
@@ -64,7 +66,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    // Créer un utilisateur admin s'il n'existe pas
+    // Créer un utilisateur admin si il n'existe pas
     var adminUser = await userManager.FindByNameAsync("admin");
     if (adminUser == null)
     {
