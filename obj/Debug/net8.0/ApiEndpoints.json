@@ -163,6 +163,112 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "AppointmentDoctor.Controllers.MedicalHistoryController",
+    "Method": "CreateMedicalHistory",
+    "RelativePath": "api/MedicalHistory",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "medicalHistoryDTO",
+        "Type": "AppointmentDoctor.DTO.CreateMedicalHistoryDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.MedicalHistoryController",
+    "Method": "GetMedicalHistory",
+    "RelativePath": "api/MedicalHistory/{historyId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "historyId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.MedicalHistoryController",
+    "Method": "UpdateMedicalHistory",
+    "RelativePath": "api/MedicalHistory/{historyId}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "historyId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "medicalHistoryDTO",
+        "Type": "AppointmentDoctor.DTO.UpdateMedicalHistoryDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.MedicalHistoryController",
+    "Method": "DeleteMedicalHistory",
+    "RelativePath": "api/MedicalHistory/{historyId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "historyId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.MedicalHistoryController",
+    "Method": "GetAllMedicalHistories",
+    "RelativePath": "api/MedicalHistory/all",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "pageNumber",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.MedicalHistoryController",
+    "Method": "GetAllMedicalHistoryByPatientId",
+    "RelativePath": "api/MedicalHistory/patient/{patientId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "patientId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "AppointmentDoctor.Controllers.SpecialityController",
     "Method": "GetAll",
     "RelativePath": "api/Speciality",

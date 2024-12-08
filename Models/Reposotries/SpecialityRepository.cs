@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AppointmentDoctor.Models.Reposotries.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentDoctor.Models.Reposotries
 {

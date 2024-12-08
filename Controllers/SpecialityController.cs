@@ -1,5 +1,5 @@
 ﻿using AppointmentDoctor.Models;
-using AppointmentDoctor.Models.Reposotries;
+using AppointmentDoctor.Models.Reposotries.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

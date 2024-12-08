@@ -1,5 +1,4 @@
-﻿
-namespace AppointmentDoctor.Models.Reposotries
+﻿namespace AppointmentDoctor.Models.Reposotries.Interfaces
 {
     public interface ISpecialityRepository
     {

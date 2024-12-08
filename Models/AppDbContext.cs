@@ -8,7 +8,7 @@ namespace AppointmentDoctor.Models
 
         public AppDbContext(DbContextOptions optons) : base(optons) { }
         public DbSet<Speciality> Specialities { get; set; }
-
+        public DbSet<MedicalHistory> medicalHistories { get; set; }
 
     }
 }

@@ -1,4 +1,3 @@
-using AppointmentDoctor.Models.Reposotries;
 using AppointmentDoctor.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -6,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Text;
+using AppointmentDoctor.Models.Reposotries;
+using AppointmentDoctor.Models.Reposotries.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(cnx)
 
 builder.Services.AddScoped<ISpecialityRepository, SpecialityRepository>();
 
+builder.Services.AddScoped<IMedicalHistoryRepository, MedicalHistoryRepository>();
 
 
 // Configurer Identity
