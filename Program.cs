@@ -75,7 +75,11 @@ using (var scope = app.Services.CreateScope())
         adminUser = new ApplicationUser
         {
             UserName = "admin",
-            Email = "admin@admin.com"
+            Email = "admin@admin.com",
+            Adress = "ain chikh rouhou",
+            FirstName = "yessin",
+            LastName = "eleuchi",
+            PhoneNumber = "56123413"
         };
         var adminPassword = "Admin@123";
         var result = await userManager.CreateAsync(adminUser, adminPassword);

@@ -3,7 +3,20 @@
 public class RegisterUserDTO
 {
         [Required]
-        public string Username { get; set; }
+      [MaxLength(100)]
+       public string Username { get; set; }
+        [Required]
+       [MaxLength(50)]
+      public string FirstName { get; set; }
+
+       [Required]
+      [MaxLength(50)]
+    public string LastName { get;set; }
+
+
+      [Required]
+      public string Adress { get; set; } 
+
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
@@ -11,8 +24,10 @@ public class RegisterUserDTO
         [Required]
         [EmailAddress]
         public string Email { get; set; }
+    [Required]
+    public string PhoneNumber { get; set; }
 
-        public string Role { get; set; } = "patient"; // Rôle par défaut
+    public string Role { get; set; } = "patient"; // Rôle par défaut
 
 
 

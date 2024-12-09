@@ -48,7 +48,11 @@ namespace AppointmentDoctor.Controllers
             var applicationUser = new ApplicationUser
             {
                 UserName = registerUser.Username,
-                Email = registerUser.Email
+                Email = registerUser.Email,
+                FirstName = registerUser.FirstName,
+                LastName = registerUser.LastName,
+                Adress = registerUser.Adress,
+                PhoneNumber = registerUser.PhoneNumber,
             };
 
             // Créer l'utilisateur avec son mot de passe
@@ -70,6 +74,10 @@ namespace AppointmentDoctor.Controllers
             return Ok(new
             {
                 username = registerUser.Username,
+                phonenumber = registerUser.PhoneNumber,
+                adress = registerUser.Adress,
+                firstName = registerUser.FirstName,
+                lastName = registerUser.LastName,
                 email = registerUser.Email,
                 role = roleToAssign
             });
@@ -85,7 +93,7 @@ namespace AppointmentDoctor.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = await userManager.FindByNameAsync(login.Username);
+            var user = await userManager.FindByEmailAsync(login.Email);
             if (user == null || !await userManager.CheckPasswordAsync(user, login.Password))
             {
                 return Unauthorized("Identifiants invalides");
@@ -118,7 +126,7 @@ namespace AppointmentDoctor.Controllers
             {
                 token = new JwtSecurityTokenHandler().WriteToken(token),
                 expiration = token.ValidTo,
-                username = login.Username
+                email = login.Email
             });
         }
 
@@ -238,7 +246,12 @@ namespace AppointmentDoctor.Controllers
             {
                 UserName = model.Username,
                 Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Adress = model.Adress,
+                PhoneNumber = model.PhoneNumber,
                 SpecialtyId = speciality.Id, // Associer l'ID de la spécialité
+
             };
 
             // Créez l'utilisateur avec le mot de passe
@@ -310,6 +323,10 @@ namespace AppointmentDoctor.Controllers
             // Mettre à jour les informations de l'utilisateur
             user.Email = updateUser.Email ?? user.Email;
             user.UserName = updateUser.NewUsername ?? user.UserName;
+            user.Adress = updateUser.Adress ?? user.Adress;
+            user.PhoneNumber = updateUser.PhoneNumber ?? user.PhoneNumber;
+            user.FirstName = updateUser.FirstName ?? user.FirstName;
+            user.LastName = updateUser.LastName ?? user.LastName;
 
             var updateResult = await userManager.UpdateAsync(user);
             if (!updateResult.Succeeded)
