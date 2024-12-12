@@ -105,5 +105,50 @@ namespace AppointmentDoctor.Controllers
             return Ok($"Utilisateur {registerUser.Username} avec le rôle {defaultRole} créé avec succès.");
         }
 
+        [HttpGet("SearchDoctors")]
+        public async Task<IActionResult> SearchDoctors(string critere)
+        {
+            if (string.IsNullOrEmpty(critere))
+            {
+                return BadRequest(new { message = "Le critère de recherche est requis." });
+            }
+
+            // Récupérer tous les utilisateurs qui ont le rôle 'doctor'
+            var doctors = await userManager.Users
+                .Where(d => (d.FirstName.ToLower().Contains(critere.ToLower()) ||
+                             d.LastName.ToLower().Contains(critere.ToLower()) ||
+                             d.Speciality.ToLower().Contains(critere.ToLower())))
+                .ToListAsync();
+
+            // Liste pour stocker les médecins filtrés
+            var doctorList = new List<object>();
+
+            foreach (var doctor in doctors)
+            {
+                // Vérifier si l'utilisateur a le rôle 'doctor' en utilisant RoleManager
+                var roles = await userManager.GetRolesAsync(doctor);
+                var roleExists = roles.Contains("doctor");
+
+                if (roleExists)
+                {
+                    doctorList.Add(new
+                    {
+                        doctor.FirstName,
+                        doctor.LastName,
+                        doctor.Speciality,
+                        doctor.Email,
+                        doctor.PhoneNumber
+                    });
+                }
+            }
+
+            if (!doctorList.Any())
+            {
+                return NotFound(new { message = "Aucun médecin trouvé avec ce critère." });
+            }
+
+            return Ok(doctorList);
+        }
+
     }
 }
