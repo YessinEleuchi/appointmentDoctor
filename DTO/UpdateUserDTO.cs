@@ -4,36 +4,27 @@ namespace AppointmentDoctor.DTO
 {
     public class UpdateUserDTO
     {
-        [Required]
-        [EmailAddress]
-        public string NewUsername { get; set; }
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-        [Required]
-        public string PhoneNumber { get; set; }
+        [EmailAddress(ErrorMessage = "L'adresse email n'est pas valide.")]
+        public string? Email { get; set; } // Optionnel
 
-        [Required]
-        public string Adress { get; set; }
+        public string? PhoneNumber { get; set; } // Optionnel
 
+        public string? Adress { get; set; } // Optionnel
 
-        [Required]
-        [MaxLength(50)]
-        public string FirstName { get; set; }
+        [MaxLength(50, ErrorMessage = "Le prénom ne peut pas dépasser 50 caractères.")]
+        public string? FirstName { get; set; } // Optionnel
 
-        [Required]
-        [MaxLength(50)]
-        public string LastName { get; set; }
+        [MaxLength(50, ErrorMessage = "Le nom de famille ne peut pas dépasser 50 caractères.")]
+        public string? LastName { get; set; } // Optionnel
 
         [DataType(DataType.Password)]
-        public string CurrentPassword { get; set; }
+        public string? CurrentPassword { get; set; } // Optionnel
 
         [DataType(DataType.Password)]
-        public string NewPassword { get; set; }
+        public string? NewPassword { get; set; } // Optionnel
 
-        [Compare("NewPassword")]
+        [Compare("NewPassword", ErrorMessage = "Les mots de passe ne correspondent pas.")]
         [DataType(DataType.Password)]
-        public string ConfirmPassword { get; set; }
-
+        public string? ConfirmPassword { get; set; } // Optionnel
     }
 }

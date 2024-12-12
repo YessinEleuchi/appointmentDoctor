@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AppointmentDoctor.Controllers
 {
@@ -58,33 +59,65 @@ namespace AppointmentDoctor.Controllers
 
         // Mettre à jour un utilisateur
         [HttpPut("UpdateUser")]
-        [Authorize(Roles = "admin")]
-        public async Task<IActionResult> UpdateUser(string username, [FromBody] UpdateUserDTO updateUser)
+        [Authorize]
+        public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDTO updateUser)
         {
-            if (string.IsNullOrEmpty(username))
+            // 1. Extraire l'identifiant de l'utilisateur à partir du token JWT
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+
+            // 2. Récupérer l'utilisateur dans la base de données
+            var user = await _userManager.FindByIdAsync(userId);
+          
+
+            // 3. Mise à jour des champs transmis (champs optionnels)
+            if (!string.IsNullOrWhiteSpace(updateUser.Email))
             {
-                return BadRequest(new { message = "Le nom d'utilisateur est requis." });
+                user.Email = updateUser.Email;
             }
 
-            if (!ModelState.IsValid)
+            if (!string.IsNullOrWhiteSpace(updateUser.PhoneNumber))
             {
-                return BadRequest(ModelState);
+                user.PhoneNumber = updateUser.PhoneNumber;
             }
 
-            var user = await _userManager.FindByNameAsync(username);
-            if (user == null)
+            if (!string.IsNullOrWhiteSpace(updateUser.Adress))
             {
-                return NotFound(new { message = "Utilisateur non trouvé." });
+                user.Adress = updateUser.Adress;
             }
 
-            // Mettre à jour les informations de l'utilisateur
-            user.Email = updateUser.Email ?? user.Email;
-            user.UserName = updateUser.NewUsername ?? user.UserName;
-            user.Adress = updateUser.Adress ?? user.Adress;
-            user.PhoneNumber = updateUser.PhoneNumber ?? user.PhoneNumber;
-            user.FirstName = updateUser.FirstName ?? user.FirstName;
-            user.LastName = updateUser.LastName ?? user.LastName;
+            if (!string.IsNullOrWhiteSpace(updateUser.FirstName))
+            {
+                user.FirstName = updateUser.FirstName;
+            }
 
+            if (!string.IsNullOrWhiteSpace(updateUser.LastName))
+            {
+                user.LastName = updateUser.LastName;
+            }
+
+            // 4. Gestion du mot de passe (si fourni)
+            if (!string.IsNullOrWhiteSpace(updateUser.NewPassword))
+            {
+                if (string.IsNullOrWhiteSpace(updateUser.CurrentPassword))
+                {
+                    return BadRequest(new { message = "Le mot de passe actuel est requis pour modifier le mot de passe." });
+                }
+
+                var passwordCheck = await _userManager.CheckPasswordAsync(user, updateUser.CurrentPassword);
+                if (!passwordCheck)
+                {
+                    return BadRequest(new { message = "Le mot de passe actuel est incorrect." });
+                }
+
+                var passwordChangeResult = await _userManager.ChangePasswordAsync(user, updateUser.CurrentPassword, updateUser.NewPassword);
+                if (!passwordChangeResult.Succeeded)
+                {
+                    return BadRequest(new { message = "Erreur lors de la modification du mot de passe.", errors = passwordChangeResult.Errors });
+                }
+            }
+
+            // 5. Sauvegarder les modifications dans la base de données
             var updateResult = await _userManager.UpdateAsync(user);
             if (!updateResult.Succeeded)
             {
@@ -117,6 +150,21 @@ namespace AppointmentDoctor.Controllers
             }
 
             return Ok(new { message = $"Utilisateur {username} supprimé avec succès." });
+        }
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetProfileDetails()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound(new { error = "no user found with this id" });
+            }
+
+            return Ok(UserDTO.FromApplicationUser(user));
         }
     }
 }
