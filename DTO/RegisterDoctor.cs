@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using AppointmentDoctor.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppointmentDoctor.DTO
 {
@@ -29,8 +31,10 @@ namespace AppointmentDoctor.DTO
         [Required]
         public string PhoneNumber { get; set; }
 
-
         [Required]
-        public string Specialty { get; set; }
+        public string Speciality { get; set; } // Foreign key for Specialty
+
+        
+
     }
 }

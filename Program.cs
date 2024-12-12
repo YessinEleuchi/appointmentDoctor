@@ -9,13 +9,15 @@ using AppointmentDoctor.Models.Reposotries;
 using AppointmentDoctor.Models.Reposotries.Interfaces;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurer la base de données
 var cnx = builder.Configuration.GetConnectionString("dbcon");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(cnx));
 
-builder.Services.AddScoped<ISpecialityRepository, SpecialityRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+
 
 builder.Services.AddScoped<IMedicalHistoryRepository, MedicalHistoryRepository>();
 

@@ -22,7 +22,7 @@ namespace AppointmentDoctor.Controllers
         private readonly AppDbContext _context;
 
 
-        public AccountController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration , AppDbContext context)
+        public AccountController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, AppDbContext context)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
@@ -39,13 +39,6 @@ namespace AppointmentDoctor.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Vérifiez que la spécialité existe dans la base de données
-            var speciality = await _context.Specialities
-                .FirstOrDefaultAsync(s => s.Name == model.Specialty);
-            if (speciality == null)
-            {
-                return BadRequest("La spécialité spécifiée n'existe pas.");
-            }
 
             // Créez un utilisateur avec les détails fournis
             var user = new ApplicationUser
@@ -56,7 +49,7 @@ namespace AppointmentDoctor.Controllers
                 LastName = model.LastName,
                 Adress = model.Adress,
                 PhoneNumber = model.PhoneNumber,
-                SpecialtyId = speciality.Id, // Associer l'ID de la spécialité
+                Speciality = model.Speciality,
 
             };
 
@@ -88,18 +81,15 @@ namespace AppointmentDoctor.Controllers
                 return BadRequest("Cet utilisateur existe déjà.");
             }
 
-            // Validez le rôle
-            var roleToAssign = string.IsNullOrEmpty(registerUser.Role) ? "admin" : registerUser.Role.ToLower();
-            if (roleToAssign != "admin")
-            {
-                return BadRequest("Le rôle doit être 'admin'.");
-            }
-
             // Créez un nouvel utilisateur
             var newUser = new ApplicationUser
             {
                 UserName = registerUser.Username,
-                Email = registerUser.Email
+                Email = registerUser.Email,
+                PhoneNumber = registerUser.PhoneNumber,
+                Adress = registerUser.Adress,
+                FirstName = registerUser.FirstName,
+                LastName = registerUser.LastName,
             };
 
             var createResult = await userManager.CreateAsync(newUser, registerUser.Password);
@@ -108,16 +98,12 @@ namespace AppointmentDoctor.Controllers
                 return BadRequest(createResult.Errors);
             }
 
-            // Assignez le rôle 'admin'
-            await userManager.AddToRoleAsync(newUser, roleToAssign);
+            // Assignez le rôle 'admin' par défaut
+            var defaultRole = "admin";
+            await userManager.AddToRoleAsync(newUser, defaultRole);
 
-            return Ok($"Utilisateur {registerUser.Username} avec le rôle {roleToAssign} créé avec succès.");
+            return Ok($"Utilisateur {registerUser.Username} avec le rôle {defaultRole} créé avec succès.");
         }
-
-
-
-        
-
 
     }
 }

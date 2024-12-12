@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using AppointmentDoctor.DTO;
+using System.Collections.Generic;
 
 public class ApplicationUser : IdentityUser
 {
@@ -16,10 +18,12 @@ public class ApplicationUser : IdentityUser
 
     [Required]
     public string Adress { get; set; }
-    public int? SpecialtyId { get; set; } // Foreign key for Specialty
+    public string? Speciality { get; set; } //for doctors
 
-    [ForeignKey("SpecialtyId")]
-    public Speciality? Specialty { get; set; } // Navigation property
 
-    public ICollection<MedicalHistory> MedicalHistories { get; set; } // For patients
+
+    public ICollection<MedicalHistory> medicalHistories { get; set; } // For patients
+    public ICollection<Appointment> appointments { get; set; } 
+
+
 }
