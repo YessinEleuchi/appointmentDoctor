@@ -13,7 +13,6 @@ public class RegisterUserDTO
       [MaxLength(50)]
     public string LastName { get;set; }
 
-
       [Required]
       public string Adress { get; set; } 
 
@@ -28,8 +27,14 @@ public class RegisterUserDTO
     public string PhoneNumber { get; set; }
 
     public string Role { get; set; } = "patient"; // Rôle par défaut
+    [Required]
+    public string Gender { get; set; }
+    [Required]
+    public int Age { get; set; }
 
 
 
-  
+
+
+
 }

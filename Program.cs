@@ -87,7 +87,8 @@ using (var scope = app.Services.CreateScope())
             FirstName = "yessin",
             LastName = "eleuchi",
             PhoneNumber = "56123413",
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            Gender ="uuuuu",
         };
         var adminPassword = "Admin@123";
         var result = await userManager.CreateAsync(adminUser, adminPassword);

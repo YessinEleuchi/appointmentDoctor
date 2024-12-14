@@ -32,9 +32,12 @@ namespace AppointmentDoctor.DTO
         public string PhoneNumber { get; set; }
 
         [Required]
-        public string Speciality { get; set; } // Foreign key for Specialty
-
-        
-
+        public string Speciality { get; set; }
+        [Required]
+        public string Gender { get; set; }
+        [Required]
+        public int Fees { get; set; }
+        [Required]
+        public int Experience { get; set; }
     }
 }

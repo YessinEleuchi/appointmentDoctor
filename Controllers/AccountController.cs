@@ -4,7 +4,6 @@ using AppointmentDoctor.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.Threading.Tasks;
 using System.Web;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +45,9 @@ namespace AppointmentDoctor.Controllers
                 Adress = model.Adress,
                 PhoneNumber = model.PhoneNumber,
                 Speciality = model.Speciality,
+                Fees=model.Fees,
+                Experience=model.Experience,
+                Gender=model.Gender,
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -92,6 +94,8 @@ namespace AppointmentDoctor.Controllers
                 Adress = registerUser.Adress,
                 FirstName = registerUser.FirstName,
                 LastName = registerUser.LastName,
+                Gender = registerUser.Gender,
+                Age= registerUser.Age,
             };
 
             var createResult = await _userManager.CreateAsync(newUser, registerUser.Password);
@@ -138,6 +142,8 @@ namespace AppointmentDoctor.Controllers
                 LastName = registerUser.LastName,
                 Adress = registerUser.Adress,
                 PhoneNumber = registerUser.PhoneNumber,
+                Age= registerUser.Age,
+                Gender=registerUser.Gender,
             };
 
             var result = await _userManager.CreateAsync(applicationUser, registerUser.Password);
@@ -270,6 +276,8 @@ namespace AppointmentDoctor.Controllers
 
             return Ok(doctorList);
         }
+
+
 
     }
 }

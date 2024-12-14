@@ -19,6 +19,15 @@ public class ApplicationUser : IdentityUser
     [Required]
     public string Adress { get; set; }
     public string? Speciality { get; set; } //for doctors
+    [Required]
+    public string Gender { get; set; }
+    [Required]
+    public int Age { get; set; }
+    public int? Fees {  get; set; }
+    public int? Experience { get; set; }
+
+
+
 
 
 
