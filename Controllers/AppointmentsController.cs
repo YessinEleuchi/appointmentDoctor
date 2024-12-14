@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 
 
@@ -17,11 +18,15 @@ namespace AppointmentDoctor.Controllers
     {
         private readonly IAppointmentRepository appointmentRepository;
         private readonly AppDbContext context ;
+        private readonly IMapper mapper; 
 
-        public AppointmentsController(IAppointmentRepository appointmentRepository, AppDbContext context)
+
+        public AppointmentsController(IAppointmentRepository appointmentRepository, AppDbContext context, IMapper mapper)
         {
             this.appointmentRepository = appointmentRepository;
             this.context = context;
+            this.mapper = mapper; // Initialisation de l'instance IMapper
+
         }
 
         /// <summary>
@@ -45,7 +50,7 @@ namespace AppointmentDoctor.Controllers
                 if (appointments == null)
                     return NotFound();
 
-                var appointmentDTOs = new List<AppointmentDTO>();
+                var appointmentDTOs = mapper.Map<List<AppointmentDTO>>(appointments);
                 foreach (var item in appointments)
                 {
                     appointmentDTOs.Add(AppointmentDTO.FromAppointment(item));
@@ -84,7 +89,7 @@ namespace AppointmentDoctor.Controllers
                     return Unauthorized("You Are Not Authorized to View this Appointment");
                 }
 
-                AppointmentDTO appointmentDTO = AppointmentDTO.FromAppointment(appointment);
+                AppointmentDTO appointmentDTO = mapper.Map<AppointmentDTO>(appointment);
                 return Ok(appointmentDTO);
             }
             catch (Exception ex)
@@ -113,7 +118,7 @@ namespace AppointmentDoctor.Controllers
                 if (appointments == null)
                     return NotFound();
 
-                var appointmentDTOs = new List<AppointmentDTO>();
+                var appointmentDTOs = mapper.Map<List<AppointmentDTO>>(appointments);
                 foreach (var item in appointments)
                 {
                     appointmentDTOs.Add(AppointmentDTO.FromAppointment(item));
@@ -149,7 +154,7 @@ namespace AppointmentDoctor.Controllers
                 if (appointments == null)
                     return NotFound();
 
-                var appointmentDTOs = new List<AppointmentDTO>();
+                var appointmentDTOs = mapper.Map<List<AppointmentDTO>>(appointments);
                 foreach (var item in appointments)
                 {
                     appointmentDTOs.Add(AppointmentDTO.FromAppointment(item));
@@ -192,7 +197,7 @@ namespace AppointmentDoctor.Controllers
                 // Check if appointments are found
                 if (appointments.Any())
                 {
-                    var appointmentDTOs = new List<AppointmentDTO>();
+                    var appointmentDTOs = mapper.Map<List<AppointmentDTO>>(appointments);
                     foreach (var item in appointments)
                     {
                         appointmentDTOs.Add(AppointmentDTO.FromAppointment(item));

@@ -148,3 +148,4 @@ C:\Users\Asus\source\repos\AppointmentDoctor\AppointmentDoctor\obj\Debug\net8.0\
 C:\Users\Asus\source\repos\AppointmentDoctor\AppointmentDoctor\obj\Debug\net8.0\ref\AppointmentDoctor.dll
 C:\Users\Asus\source\repos\AppointmentDoctor\AppointmentDoctor\obj\Debug\net8.0\AppointmentDoctor.sourcelink.json
 C:\Users\Asus\source\repos\AppointmentDoctor\AppointmentDoctor\bin\Debug\net8.0\AutoMapper.dll
+C:\Users\Asus\source\repos\AppointmentDoctor\AppointmentDoctor\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

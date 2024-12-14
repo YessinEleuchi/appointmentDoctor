@@ -7,6 +7,8 @@ using System;
 using System.Text;
 using AppointmentDoctor.Models.Reposotries;
 using AppointmentDoctor.Models.Reposotries.Interfaces;
+using AppointmentDoctor.Mapping;
+using AppointmentDoctor.Services;
 
 
 
@@ -17,6 +19,9 @@ var cnx = builder.Configuration.GetConnectionString("dbcon");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(cnx));
 
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddAutoMapper(typeof(MedicalHistoryMappingProfile), typeof(AppointmentMappingProfile));
+builder.Services.AddTransient<EmailService>();
+
 
 
 builder.Services.AddScoped<IMedicalHistoryRepository, MedicalHistoryRepository>();
@@ -81,7 +86,8 @@ using (var scope = app.Services.CreateScope())
             Adress = "ain chikh rouhou",
             FirstName = "yessin",
             LastName = "eleuchi",
-            PhoneNumber = "56123413"
+            PhoneNumber = "56123413",
+            EmailConfirmed = true
         };
         var adminPassword = "Admin@123";
         var result = await userManager.CreateAsync(adminUser, adminPassword);

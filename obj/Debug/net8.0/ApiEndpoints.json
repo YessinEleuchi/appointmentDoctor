@@ -17,6 +17,43 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.AccountController",
+    "Method": "ConfirmEmail",
+    "RelativePath": "api/Account/ConfirmEmail",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "token",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
+    "Method": "Register",
+    "RelativePath": "api/Account/Register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "registerUser",
+        "Type": "RegisterUserDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
     "Method": "RegisterDoctor",
     "RelativePath": "api/Account/register/doctor",
     "HttpMethod": "POST",
@@ -27,6 +64,22 @@
         "Name": "model",
         "Type": "AppointmentDoctor.DTO.RegisterDoctor",
         "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
+    "Method": "SearchDoctors",
+    "RelativePath": "api/Account/SearchDoctors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "critere",
+        "Type": "System.String",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -234,22 +287,6 @@
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AuthenticationController",
-    "Method": "Register",
-    "RelativePath": "api/Authentication/Register",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "registerUser",
-        "Type": "RegisterUserDTO",
-        "IsRequired": true
-      }
-    ],
     "ReturnTypes": []
   },
   {

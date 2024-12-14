@@ -1,13 +1,11 @@
-﻿// AccountController.cs
-using AppointmentDoctor.Models;
+﻿using AppointmentDoctor.Models;
+using AppointmentDoctor.DTO;
+using AppointmentDoctor.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using AppointmentDoctor.DTO;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System.Threading.Tasks;
+using System.Web;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppointmentDoctor.Controllers
@@ -16,20 +14,20 @@ namespace AppointmentDoctor.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> userManager;
-        private readonly RoleManager<IdentityRole> roleManager;
-        private readonly IConfiguration configuration;
-        private readonly AppDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly EmailService _emailService;
 
-
-        public AccountController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, AppDbContext context)
+        public AccountController(UserManager<ApplicationUser> userManager,
+                                 RoleManager<IdentityRole> roleManager,
+                                 EmailService emailService)
         {
-            this.userManager = userManager;
-            this.roleManager = roleManager;
-            this.configuration = configuration;
-            _context = context;
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _emailService = emailService;
         }
 
+        // Méthode pour enregistrer un docteur
         [HttpPost("register/doctor")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> RegisterDoctor(RegisterDoctor model)
@@ -39,8 +37,6 @@ namespace AppointmentDoctor.Controllers
                 return BadRequest(ModelState);
             }
 
-
-            // Créez un utilisateur avec les détails fournis
             var user = new ApplicationUser
             {
                 UserName = model.Username,
@@ -50,21 +46,27 @@ namespace AppointmentDoctor.Controllers
                 Adress = model.Adress,
                 PhoneNumber = model.PhoneNumber,
                 Speciality = model.Speciality,
-
             };
 
-            // Créez l'utilisateur avec le mot de passe
-            var result = await userManager.CreateAsync(user, model.Password);
+            var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors);
             }
 
-            // Assignez le rôle de professionnel médical
-            await userManager.AddToRoleAsync(user, "doctor");
+            await _userManager.AddToRoleAsync(user, "doctor");
 
-            return Ok($"Enregistrement réussi du Doctor : {model.Username}");
+            // Envoi du lien de confirmation par email
+            await SendConfirmationEmail(user.Email);
+
+            return Ok(new
+            {
+                message = $"Enregistrement réussi. Un email de confirmation a été envoyé à {model.Email}.",
+                username = model.Username
+            });
         }
+
+        // Méthode pour enregistrer un admin
         [HttpPost("AdminCreateAdminUser")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> AdminCreateAdminUser(RegisterUserDTO registerUser)
@@ -75,13 +77,13 @@ namespace AppointmentDoctor.Controllers
             }
 
             // Vérifiez si l'utilisateur existe déjà
-            var userExists = await userManager.FindByNameAsync(registerUser.Username);
+            var userExists = await _userManager.FindByNameAsync(registerUser.Username);
             if (userExists != null)
             {
                 return BadRequest("Cet utilisateur existe déjà.");
             }
 
-            // Créez un nouvel utilisateur
+            // Créer un nouvel utilisateur admin
             var newUser = new ApplicationUser
             {
                 UserName = registerUser.Username,
@@ -92,18 +94,137 @@ namespace AppointmentDoctor.Controllers
                 LastName = registerUser.LastName,
             };
 
-            var createResult = await userManager.CreateAsync(newUser, registerUser.Password);
+            var createResult = await _userManager.CreateAsync(newUser, registerUser.Password);
             if (!createResult.Succeeded)
             {
                 return BadRequest(createResult.Errors);
             }
 
-            // Assignez le rôle 'admin' par défaut
+            // Assigner le rôle 'admin'
             var defaultRole = "admin";
-            await userManager.AddToRoleAsync(newUser, defaultRole);
+            if (!await _roleManager.RoleExistsAsync(defaultRole))
+            {
+                return BadRequest("Le rôle 'admin' n'existe pas.");
+            }
+
+            await _userManager.AddToRoleAsync(newUser, defaultRole);
+
+            // Envoi du lien de confirmation par email
+            await SendConfirmationEmail(newUser.Email);
 
             return Ok($"Utilisateur {registerUser.Username} avec le rôle {defaultRole} créé avec succès.");
         }
+
+        // Méthode pour enregistrer un utilisateur "patient"
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register(RegisterUserDTO registerUser)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var userExists = await _userManager.FindByNameAsync(registerUser.Username);
+            if (userExists != null)
+            {
+                return BadRequest("Cet utilisateur existe déjà.");
+            }
+
+            var applicationUser = new ApplicationUser
+            {
+                UserName = registerUser.Username,
+                Email = registerUser.Email,
+                FirstName = registerUser.FirstName,
+                LastName = registerUser.LastName,
+                Adress = registerUser.Adress,
+                PhoneNumber = registerUser.PhoneNumber,
+            };
+
+            var result = await _userManager.CreateAsync(applicationUser, registerUser.Password);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            string roleToAssign = "patient";
+            if (!await _roleManager.RoleExistsAsync(roleToAssign))
+            {
+                return BadRequest("Le rôle 'patient' n'existe pas.");
+            }
+
+            await _userManager.AddToRoleAsync(applicationUser, roleToAssign);
+
+            // Envoi du lien de confirmation par email
+            await SendConfirmationEmail(applicationUser.Email);
+
+            return Ok(new
+            {
+                message = $"Inscription réussie. Un email de confirmation a été envoyé à {registerUser.Email}.",
+                username = registerUser.Username,
+                role = roleToAssign
+            });
+        }
+
+        // Méthode pour envoyer un lien de confirmation par email
+        private async Task<IActionResult> SendConfirmationEmail(string userEmail)
+        {
+            var user = await _userManager.FindByEmailAsync(userEmail);
+            if (user == null)
+            {
+                return NotFound("Utilisateur non trouvé.");
+            }
+
+            if (await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return BadRequest("L'email est déjà confirmé.");
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = HttpUtility.UrlEncode(token);
+
+            var confirmationLink = Url.Action(
+                "ConfirmEmail",
+                "Account",
+                new { userId = user.Id, token = encodedToken },
+                Request.Scheme);
+
+            // Envoi de l'email de confirmation
+            await _emailService.SendEmailAsync(userEmail, "Confirmer votre email", $"Cliquez sur ce lien pour confirmer votre email : {confirmationLink}");
+
+            return Ok("Email de confirmation envoyé.");
+        }
+
+        // Méthode pour confirmer l'email
+        [HttpGet("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                return BadRequest("Demande de confirmation de l'email invalide.");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("Utilisateur non trouvé.");
+            }
+
+            // Décoder le token
+            string decodedToken = HttpUtility.UrlDecode(token);
+
+            // Tenter de confirmer l'email avec le token
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("La confirmation de l'email a échoué.");
+            }
+
+            return Ok("Email confirmé avec succès.");
+        }
+
+
+
 
         [HttpGet("SearchDoctors")]
         public async Task<IActionResult> SearchDoctors(string critere)
@@ -114,7 +235,7 @@ namespace AppointmentDoctor.Controllers
             }
 
             // Récupérer tous les utilisateurs qui ont le rôle 'doctor'
-            var doctors = await userManager.Users
+            var doctors = await _userManager.Users
                 .Where(d => (d.FirstName.ToLower().Contains(critere.ToLower()) ||
                              d.LastName.ToLower().Contains(critere.ToLower()) ||
                              d.Speciality.ToLower().Contains(critere.ToLower())))
@@ -126,7 +247,7 @@ namespace AppointmentDoctor.Controllers
             foreach (var doctor in doctors)
             {
                 // Vérifier si l'utilisateur a le rôle 'doctor' en utilisant RoleManager
-                var roles = await userManager.GetRolesAsync(doctor);
+                var roles = await _userManager.GetRolesAsync(doctor);
                 var roleExists = roles.Contains("doctor");
 
                 if (roleExists)

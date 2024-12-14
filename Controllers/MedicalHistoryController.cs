@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using AutoMapper;
 
 namespace AppointmentDoctor.Controllers
 {
@@ -14,10 +15,12 @@ namespace AppointmentDoctor.Controllers
     public class MedicalHistoryController : ControllerBase
     {
         private readonly IMedicalHistoryRepository medicalHistoryRepository;
+        private readonly IMapper mapper;
 
-        public MedicalHistoryController(IMedicalHistoryRepository medicalHistoryRepository)
+        public MedicalHistoryController(IMedicalHistoryRepository medicalHistoryRepository , IMapper mapper)
         {
             this.medicalHistoryRepository = medicalHistoryRepository;
+            this.mapper = mapper;
         }
 
         [HttpGet("all")]
@@ -52,8 +55,8 @@ namespace AppointmentDoctor.Controllers
                 {
                     return Unauthorized();
                 }
-
-                return Ok(medicalHistory);
+                var medicalHistoryDTO = mapper.Map<CreateMedicalHistoryDTO>(medicalHistory);
+                return Ok(medicalHistoryDTO);
             }
             catch (Exception ex)
             {
@@ -72,14 +75,14 @@ namespace AppointmentDoctor.Controllers
                 {
                     return NotFound();
                 }
-                return Ok(medicalHistory);
+                var medicalHistoryDTOs = mapper.Map<List<CreateMedicalHistoryDTO>> (medicalHistory);
+                return Ok(medicalHistoryDTOs);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
-
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> CreateMedicalHistory(CreateMedicalHistoryDTO medicalHistoryDTO)
@@ -88,17 +91,25 @@ namespace AppointmentDoctor.Controllers
             {
                 try
                 {
-                    var medicalHistory = new MedicalHistory
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                    // Check if the patient already has a medical history
+                    var existingMedicalHistory = await medicalHistoryRepository.GetMedicalHistoryByPatientIdAsync(userId);
+
+                    // If the patient already has a medical history, return a BadRequest
+                    if (existingMedicalHistory != null && existingMedicalHistory.Any())
                     {
-                        UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-                        MedicalCondition = medicalHistoryDTO.MedicalCondition,
-                        Medications = medicalHistoryDTO.Medications,
-                        Allergies = medicalHistoryDTO.Allergies,
-                        Surgeries = medicalHistoryDTO.Surgeries,
-                        FamilyMedicalHistory = medicalHistoryDTO.FamilyMedicalHistory,
-                    };
+                        return BadRequest("A medical history already exists for this patient.");
+                    }
+
+                    // Map the DTO to the MedicalHistory entity and set the UserId
+                    var medicalHistory = mapper.Map<MedicalHistory>(medicalHistoryDTO);
+                    medicalHistory.UserId = userId;
+
+                    // Create the new medical history
                     await medicalHistoryRepository.CreateAsync(medicalHistory);
 
+                    // Return the newly created medical history with a 201 status
                     return CreatedAtAction(nameof(GetMedicalHistory), new { historyId = medicalHistory.MedicalHistoryID }, medicalHistory);
                 }
                 catch (Exception ex)
@@ -106,8 +117,10 @@ namespace AppointmentDoctor.Controllers
                     return BadRequest(ex.Message);
                 }
             }
+
             return BadRequest(ModelState);
         }
+
 
         [HttpPut("{historyId}")]
         [Authorize]
@@ -130,12 +143,11 @@ namespace AppointmentDoctor.Controllers
                         return Unauthorized();
                     }
 
-                    currentHistory.Medications = medicalHistoryDTO.Medications;
-                    currentHistory.FamilyMedicalHistory = medicalHistoryDTO.FamilyMedicalHistory;
-                    currentHistory.Surgeries = medicalHistoryDTO.Surgeries;
-                    currentHistory.Allergies = medicalHistoryDTO.Allergies;
+
+                    mapper.Map(medicalHistoryDTO, currentHistory);
                     await medicalHistoryRepository.UpdateAsync(currentHistory);
                     return Ok(currentHistory);
+                  
                 }
                 catch (Exception ex)
                 {

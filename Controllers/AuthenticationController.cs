@@ -47,13 +47,19 @@ namespace AppointmentDoctor.Controllers
                 return Unauthorized(new { message = "Identifiants invalides" });
             }
 
+            // Vérification si l'email est confirmé
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return Unauthorized(new { message = "Veuillez confirmer votre email avant de vous connecter." });
+            }
+
             // Création des claims pour le JWT
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+    {
+        new Claim(ClaimTypes.Name, user.UserName),
+        new Claim(ClaimTypes.NameIdentifier, user.Id),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
 
             // Ajout des rôles de l'utilisateur dans les claims
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -85,59 +91,7 @@ namespace AppointmentDoctor.Controllers
         }
 
 
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register(RegisterUserDTO registerUser)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
 
-            // Vérifiez si l'utilisateur existe déjà
-            var user = await _userManager.FindByNameAsync(registerUser.Username);
-            if (user != null)
-            {
-                return BadRequest("Cet utilisateur existe déjà.");
-            }
-
-            // Créer un nouvel utilisateur
-            var applicationUser = new ApplicationUser
-            {
-                UserName = registerUser.Username,
-                Email = registerUser.Email,
-                FirstName = registerUser.FirstName,
-                LastName = registerUser.LastName,
-                Adress = registerUser.Adress,
-                PhoneNumber = registerUser.PhoneNumber,
-            };
-
-            // Créer l'utilisateur avec son mot de passe
-            var result = await _userManager.CreateAsync(applicationUser, registerUser.Password);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            // Assigner systématiquement le rôle "patient"
-            string roleToAssign = "patient";
-            if (!await _roleManager.RoleExistsAsync(roleToAssign))
-            {
-                return BadRequest("Le rôle 'patient' n'existe pas. Contactez l'administrateur.");
-            }
-
-            await _userManager.AddToRoleAsync(applicationUser, roleToAssign);
-
-            return Ok(new
-            {
-                username = registerUser.Username,
-                phonenumber = registerUser.PhoneNumber,
-                adress = registerUser.Adress,
-                firstName = registerUser.FirstName,
-                lastName = registerUser.LastName,
-                email = registerUser.Email,
-                role = roleToAssign
-            });
-        }
         // Déconnexion d'un utilisateur (simulé, car JWT ne gère pas directement la déconnexion)
         [HttpPost("Logout")]
         public IActionResult Logout()
