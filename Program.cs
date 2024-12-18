@@ -1,16 +1,12 @@
-using AppointmentDoctor.Models;
+using AppointmentDoctor.Mapping;
+using AppointmentDoctor.Models.Reposotries.Interfaces;
+using AppointmentDoctor.Models.Reposotries;
+using AppointmentDoctor.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System;
 using System.Text;
-using AppointmentDoctor.Models.Reposotries;
-using AppointmentDoctor.Models.Reposotries.Interfaces;
-using AppointmentDoctor.Mapping;
-using AppointmentDoctor.Services;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +18,7 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddAutoMapper(typeof(MedicalHistoryMappingProfile), typeof(AppointmentMappingProfile));
 builder.Services.AddTransient<EmailService>();
 
-
-
 builder.Services.AddScoped<IMedicalHistoryRepository, MedicalHistoryRepository>();
-
 
 // Configurer Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -49,6 +42,17 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+});
+
+// Configurer CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", builder =>
+    {
+        builder.WithOrigins("http://localhost:5173")  // Frontend React
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
 });
 
 // Ajouter les services nécessaires
@@ -88,7 +92,7 @@ using (var scope = app.Services.CreateScope())
             LastName = "eleuchi",
             PhoneNumber = "56123413",
             EmailConfirmed = true,
-            Gender ="uuuuu",
+            Gender = "male",
         };
         var adminPassword = "Admin@123";
         var result = await userManager.CreateAsync(adminUser, adminPassword);
@@ -105,6 +109,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Activer CORS
+app.UseCors("AllowReactApp");
 
 app.UseAuthentication(); // Activer l'authentification JWT
 app.UseAuthorization(); // Activer l'autorisation des utilisateurs

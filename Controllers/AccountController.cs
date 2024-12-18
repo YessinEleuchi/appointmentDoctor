@@ -25,15 +25,39 @@ namespace AppointmentDoctor.Controllers
             _roleManager = roleManager;
             _emailService = emailService;
         }
-
-        // Méthode pour enregistrer un docteur
         [HttpPost("register/doctor")]
         [Authorize(Roles = "admin")]
-        public async Task<IActionResult> RegisterDoctor(RegisterDoctor model)
+        public async Task<IActionResult> RegisterDoctor([FromForm] RegisterDoctor model)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            string imagePath = null;
+
+            // Vérifier et sauvegarder l'image
+            if (model.ProfileImage != null)
+            {
+                var fileExtension = Path.GetExtension(model.ProfileImage.FileName);
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+
+                if (!allowedExtensions.Contains(fileExtension.ToLower()))
+                {
+                    return BadRequest("Format d'image non valide. Les formats autorisés sont : .jpg, .jpeg, .png.");
+                }
+
+                var fileName = $"{Guid.NewGuid()}{fileExtension}";
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/doctors");
+                Directory.CreateDirectory(uploadsFolder); // Crée le dossier s'il n'existe pas
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.ProfileImage.CopyToAsync(stream);
+                }
+
+                imagePath = $"/images/doctors/{fileName}";
             }
 
             var user = new ApplicationUser
@@ -45,9 +69,10 @@ namespace AppointmentDoctor.Controllers
                 Adress = model.Adress,
                 PhoneNumber = model.PhoneNumber,
                 Speciality = model.Speciality,
-                Fees=model.Fees,
-                Experience=model.Experience,
-                Gender=model.Gender,
+                Fees = model.Fees,
+                Experience = model.Experience,
+                Gender = model.Gender,
+                ProfileImagePath = imagePath
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -64,10 +89,10 @@ namespace AppointmentDoctor.Controllers
             return Ok(new
             {
                 message = $"Enregistrement réussi. Un email de confirmation a été envoyé à {model.Email}.",
-                username = model.Username
+                username = model.Username,
+                profileImage = imagePath
             });
         }
-
         // Méthode pour enregistrer un admin
         [HttpPost("AdminCreateAdminUser")]
         [Authorize(Roles = "admin")]
@@ -95,7 +120,7 @@ namespace AppointmentDoctor.Controllers
                 FirstName = registerUser.FirstName,
                 LastName = registerUser.LastName,
                 Gender = registerUser.Gender,
-                Age= registerUser.Age,
+                Age = registerUser.Age,
             };
 
             var createResult = await _userManager.CreateAsync(newUser, registerUser.Password);
@@ -142,8 +167,8 @@ namespace AppointmentDoctor.Controllers
                 LastName = registerUser.LastName,
                 Adress = registerUser.Adress,
                 PhoneNumber = registerUser.PhoneNumber,
-                Age= registerUser.Age,
-                Gender=registerUser.Gender,
+                Age = registerUser.Age,
+                Gender = registerUser.Gender,
             };
 
             var result = await _userManager.CreateAsync(applicationUser, registerUser.Password);
@@ -200,6 +225,10 @@ namespace AppointmentDoctor.Controllers
             return Ok("Email de confirmation envoyé.");
         }
 
+
+
+
+
         // Méthode pour confirmer l'email
         [HttpGet("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
@@ -232,50 +261,6 @@ namespace AppointmentDoctor.Controllers
 
 
 
-        [HttpGet("SearchDoctors")]
-        public async Task<IActionResult> SearchDoctors(string critere)
-        {
-            if (string.IsNullOrEmpty(critere))
-            {
-                return BadRequest(new { message = "Le critère de recherche est requis." });
-            }
-
-            // Récupérer tous les utilisateurs qui ont le rôle 'doctor'
-            var doctors = await _userManager.Users
-                .Where(d => (d.FirstName.ToLower().Contains(critere.ToLower()) ||
-                             d.LastName.ToLower().Contains(critere.ToLower()) ||
-                             d.Speciality.ToLower().Contains(critere.ToLower())))
-                .ToListAsync();
-
-            // Liste pour stocker les médecins filtrés
-            var doctorList = new List<object>();
-
-            foreach (var doctor in doctors)
-            {
-                // Vérifier si l'utilisateur a le rôle 'doctor' en utilisant RoleManager
-                var roles = await _userManager.GetRolesAsync(doctor);
-                var roleExists = roles.Contains("doctor");
-
-                if (roleExists)
-                {
-                    doctorList.Add(new
-                    {
-                        doctor.FirstName,
-                        doctor.LastName,
-                        doctor.Speciality,
-                        doctor.Email,
-                        doctor.PhoneNumber
-                    });
-                }
-            }
-
-            if (!doctorList.Any())
-            {
-                return NotFound(new { message = "Aucun médecin trouvé avec ce critère." });
-            }
-
-            return Ok(doctorList);
-        }
 
 
 

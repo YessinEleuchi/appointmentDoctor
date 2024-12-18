@@ -17,7 +17,7 @@ namespace AppointmentDoctor.Controllers
         private readonly IMedicalHistoryRepository medicalHistoryRepository;
         private readonly IMapper mapper;
 
-        public MedicalHistoryController(IMedicalHistoryRepository medicalHistoryRepository , IMapper mapper)
+        public MedicalHistoryController(IMedicalHistoryRepository medicalHistoryRepository, IMapper mapper)
         {
             this.medicalHistoryRepository = medicalHistoryRepository;
             this.mapper = mapper;
@@ -75,7 +75,7 @@ namespace AppointmentDoctor.Controllers
                 {
                     return NotFound();
                 }
-                var medicalHistoryDTOs = mapper.Map<List<CreateMedicalHistoryDTO>> (medicalHistory);
+                var medicalHistoryDTOs = mapper.Map<List<CreateMedicalHistoryDTO>>(medicalHistory);
                 return Ok(medicalHistoryDTOs);
             }
             catch (Exception ex)
@@ -147,7 +147,7 @@ namespace AppointmentDoctor.Controllers
                     mapper.Map(medicalHistoryDTO, currentHistory);
                     await medicalHistoryRepository.UpdateAsync(currentHistory);
                     return Ok(currentHistory);
-                  
+
                 }
                 catch (Exception ex)
                 {

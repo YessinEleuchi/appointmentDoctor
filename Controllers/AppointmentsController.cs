@@ -17,8 +17,8 @@ namespace AppointmentDoctor.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly IAppointmentRepository appointmentRepository;
-        private readonly AppDbContext context ;
-        private readonly IMapper mapper; 
+        private readonly AppDbContext context;
+        private readonly IMapper mapper;
 
 
         public AppointmentsController(IAppointmentRepository appointmentRepository, AppDbContext context, IMapper mapper)
@@ -240,7 +240,7 @@ namespace AppointmentDoctor.Controllers
                     var appointment = new Appointment
                     {
                         AppointmentDateTime = appointmentDTO.AppointmentDateTime,
-                       
+
                         Status = "Available",
                         DoctorId = doctorId,
                     };

@@ -28,6 +28,7 @@ namespace AppointmentDoctor.Controllers
 
         // Obtenir tous les utilisateurs avec leurs rôles
         [HttpGet("GetAllUsers")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllUsers(int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber <= 0 || pageSize <= 0)
@@ -35,14 +36,15 @@ namespace AppointmentDoctor.Controllers
                 return BadRequest(new { message = "Les numéros de page et la taille doivent être supérieurs à zéro." });
             }
 
-            // Récupérer les utilisateurs avec pagination
+            var totalUsers = await _userManager.Users.CountAsync();
+
             var users = await _userManager.Users
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Récupérer les rôles pour chaque utilisateur
             var userDetails = new List<object>();
+
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
@@ -50,11 +52,18 @@ namespace AppointmentDoctor.Controllers
                 {
                     user.Id,
                     user.UserName,
+                    user.Email,
                     Roles = roles
                 });
             }
 
-            return Ok(userDetails);
+            return Ok(new
+            {
+                TotalUsers = totalUsers,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Users = userDetails
+            });
         }
 
         // Mettre à jour un utilisateur
@@ -62,41 +71,22 @@ namespace AppointmentDoctor.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateUser([FromBody] UpdateUserDTO updateUser)
         {
-            // 1. Extraire l'identifiant de l'utilisateur à partir du token JWT
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-
-            // 2. Récupérer l'utilisateur dans la base de données
             var user = await _userManager.FindByIdAsync(userId);
-          
-
-            // 3. Mise à jour des champs transmis (champs optionnels)
-            if (!string.IsNullOrWhiteSpace(updateUser.Email))
+            if (user == null)
             {
-                user.Email = updateUser.Email;
+                return NotFound(new { message = "Utilisateur non trouvé." });
             }
 
-            if (!string.IsNullOrWhiteSpace(updateUser.PhoneNumber))
-            {
-                user.PhoneNumber = updateUser.PhoneNumber;
-            }
+            // Mise à jour des champs optionnels
+            user.Email = string.IsNullOrWhiteSpace(updateUser.Email) ? user.Email : updateUser.Email;
+            user.PhoneNumber = string.IsNullOrWhiteSpace(updateUser.PhoneNumber) ? user.PhoneNumber : updateUser.PhoneNumber;
+            user.Adress = string.IsNullOrWhiteSpace(updateUser.Adress) ? user.Adress : updateUser.Adress;
+            user.FirstName = string.IsNullOrWhiteSpace(updateUser.FirstName) ? user.FirstName : updateUser.FirstName;
+            user.LastName = string.IsNullOrWhiteSpace(updateUser.LastName) ? user.LastName : updateUser.LastName;
 
-            if (!string.IsNullOrWhiteSpace(updateUser.Adress))
-            {
-                user.Adress = updateUser.Adress;
-            }
-
-            if (!string.IsNullOrWhiteSpace(updateUser.FirstName))
-            {
-                user.FirstName = updateUser.FirstName;
-            }
-
-            if (!string.IsNullOrWhiteSpace(updateUser.LastName))
-            {
-                user.LastName = updateUser.LastName;
-            }
-
-            // 4. Gestion du mot de passe (si fourni)
+            // Gestion du mot de passe
             if (!string.IsNullOrWhiteSpace(updateUser.NewPassword))
             {
                 if (string.IsNullOrWhiteSpace(updateUser.CurrentPassword))
@@ -117,7 +107,6 @@ namespace AppointmentDoctor.Controllers
                 }
             }
 
-            // 5. Sauvegarder les modifications dans la base de données
             var updateResult = await _userManager.UpdateAsync(user);
             if (!updateResult.Succeeded)
             {
@@ -128,7 +117,7 @@ namespace AppointmentDoctor.Controllers
         }
 
         // Supprimer un utilisateur
-        [HttpDelete("DeleteUser")]
+        [HttpDelete("DeleteUser/{username}")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(string username)
         {
@@ -151,8 +140,10 @@ namespace AppointmentDoctor.Controllers
 
             return Ok(new { message = $"Utilisateur {username} supprimé avec succès." });
         }
+
+        // Obtenir les détails du profil
+        [HttpGet("GetProfileDetails")]
         [Authorize]
-        [HttpGet]
         public async Task<IActionResult> GetProfileDetails()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -161,10 +152,133 @@ namespace AppointmentDoctor.Controllers
 
             if (user == null)
             {
-                return NotFound(new { error = "no user found with this id" });
+                return NotFound(new { message = "Utilisateur non trouvé." });
             }
 
             return Ok(UserDTO.FromApplicationUser(user));
         }
+
+        // Obtenir tous les médecins
+        [HttpGet("GetAllDoctors")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetAllDoctors()
+        {
+            // Récupérer tous les utilisateurs ayant le rôle 'doctor'
+            var users = await _userManager.Users.ToListAsync();
+
+            var doctorList = new List<object>();
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.Contains("doctor"))
+                {
+                    doctorList.Add(new
+                    {
+                        user.Id,
+                        user.FirstName,
+                        user.LastName,
+                        user.Email,
+                        user.PhoneNumber,
+                        user.Speciality,
+                        user.Adress
+                    });
+                }
+            }
+
+            if (!doctorList.Any())
+            {
+                return NotFound(new { message = "Aucun médecin trouvé." });
+            }
+
+            return Ok(doctorList);
+        }
+
+        // Obtenir les médecins par spécialité
+        [HttpGet("GetDoctorsBySpeciality")]
+        public async Task<IActionResult> GetDoctorsBySpeciality(string speciality)
+        {
+            if (string.IsNullOrEmpty(speciality))
+            {
+                return BadRequest(new { message = "La spécialité est requise pour effectuer cette recherche." });
+            }
+
+            // Récupérer les médecins correspondant à la spécialité
+            var users = await _userManager.Users
+                .Where(user => user.Speciality.ToLower().Contains(speciality.ToLower()))
+                .ToListAsync();
+
+            var doctorList = new List<object>();
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.Contains("doctor"))
+                {
+                    doctorList.Add(new
+                    {
+                        user.Id,
+                        user.FirstName,
+                        user.LastName,
+                        user.Email,
+                        user.PhoneNumber,
+                        user.Speciality,
+                        user.Adress
+                    });
+                }
+            }
+
+            if (!doctorList.Any())
+            {
+                return NotFound(new { message = "Aucun médecin trouvé avec cette spécialité." });
+            }
+
+            return Ok(doctorList);
+        }
+
+
+        [HttpGet("SearchDoctors")]
+        public async Task<IActionResult> SearchDoctors(string critere)
+        {
+            if (string.IsNullOrEmpty(critere))
+            {
+                return BadRequest(new { message = "Le critère de recherche est requis." });
+            }
+
+            // Récupérer tous les utilisateurs qui ont le rôle 'doctor'
+            var doctors = await _userManager.Users
+                .Where(d => (d.FirstName.ToLower().Contains(critere.ToLower()) ||
+                             d.LastName.ToLower().Contains(critere.ToLower()) ||
+                             d.Speciality.ToLower().Contains(critere.ToLower())))
+                .ToListAsync();
+
+            // Liste pour stocker les médecins filtrés
+            var doctorList = new List<object>();
+
+            foreach (var doctor in doctors)
+            {
+                // Vérifier si l'utilisateur a le rôle 'doctor' en utilisant RoleManager
+                var roles = await _userManager.GetRolesAsync(doctor);
+                var roleExists = roles.Contains("doctor");
+
+                if (roleExists)
+                {
+                    doctorList.Add(new
+                    {
+                        doctor.FirstName,
+                        doctor.LastName,
+                        doctor.Speciality,
+                        doctor.Email,
+                        doctor.PhoneNumber
+                    });
+                }
+            }
+
+            if (!doctorList.Any())
+            {
+                return NotFound(new { message = "Aucun médecin trouvé avec ce critère." });
+            }
+
+            return Ok(doctorList);
+        }
+
     }
 }

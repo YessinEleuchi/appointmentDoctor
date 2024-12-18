@@ -18,6 +18,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         // Apply entity configurations
         modelBuilder.ApplyConfiguration(new AppointmentConfiguration());
+
+        modelBuilder.ApplyConfiguration(new MedicalHistoryConfiguration());
     }
 
     /// <summary>

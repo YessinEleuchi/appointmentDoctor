@@ -1,11 +1,13 @@
 ﻿using AppointmentDoctor.DTO;
 using AppointmentDoctor.Models;
+using AppointmentDoctor.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AppointmentDoctor.Controllers
 {
@@ -14,18 +16,18 @@ namespace AppointmentDoctor.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _context;
 
+
         public AuthenticationController(
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            IConfiguration configuration,
+            EmailService emailService, IConfiguration configuration,
             AppDbContext context)
         {
             _userManager = userManager;
-            _roleManager = roleManager;
+            _emailService = emailService;
             _configuration = configuration;
             _context = context;
         }
@@ -90,15 +92,59 @@ namespace AppointmentDoctor.Controllers
             });
         }
 
-
-
-        // Déconnexion d'un utilisateur (simulé, car JWT ne gère pas directement la déconnexion)
-        [HttpPost("Logout")]
-        public IActionResult Logout()
+        // Fonction pour la demande de réinitialisation de mot de passe
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO model)
         {
-            // La déconnexion peut être gérée côté client (en supprimant le token)
-            return Ok("Utilisateur déconnecté. (Le client doit supprimer le token JWT)");
+            // Vérification que l'email est bien fourni
+            if (string.IsNullOrEmpty(model.Email))
+                return BadRequest("L'email est requis.");
+
+            // Recherche de l'utilisateur par son email
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return NotFound("Utilisateur introuvable.");
+
+            // Génération du token de réinitialisation du mot de passe
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // Envoi de l'email avec le token
+            var messageBody = $"Pour réinitialiser votre mot de passe, utilisez ce token : {token}";
+
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email, "Réinitialisation du mot de passe", messageBody);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Erreur lors de l'envoi de l'email: " + ex.Message);
+            }
+
+            return Ok("Email de réinitialisation envoyé.");
         }
 
+        // Fonction pour la réinitialisation du mot de passe
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO model)
+        {
+            // Vérification que tous les champs sont remplis
+            if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Token) || string.IsNullOrEmpty(model.NewPassword))
+                return BadRequest("Tous les champs sont requis.");
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return NotFound("Utilisateur introuvable.");
+
+            // Réinitialisation du mot de passe en utilisant le token fourni
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                // Retourne les erreurs si la réinitialisation échoue
+                return BadRequest(result.Errors);
+            }
+
+            return Ok("Mot de passe réinitialisé avec succès.");
+        }
     }
 }

@@ -1,6 +1,4 @@
-﻿using AppointmentDoctor.Models;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace AppointmentDoctor.DTO
 {
@@ -8,25 +6,30 @@ namespace AppointmentDoctor.DTO
     {
         public int AppointmentID { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "L'ID du docteur est requis.")]
         public string DoctorId { get; set; }
 
         public string? PatientId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "La date et l'heure du rendez-vous sont requises.")]
         public DateTime AppointmentDateTime { get; set; }
 
-        [Required]
-        [MaxLength(20)]
-        public string Status { get; set; } // e.g., Available, scheduled, canceled, completed
+        [Required(ErrorMessage = "Le statut du rendez-vous est requis.")]
+        [MaxLength(20, ErrorMessage = "Le statut ne peut pas dépasser 20 caractères.")]
+        public string Status { get; set; }
 
-        [MaxLength(250)]
-        public string Notes { get; set; }
+        [MaxLength(250, ErrorMessage = "Les notes ne peuvent pas dépasser 250 caractères.")]
+        public string? Notes { get; set; }
 
-        public string DoctorName { get; set; }
+        public string DoctorName { get; set; } // Nom complet du docteur
 
-        public String Speciality { get; set; }
+        public string? PatientName { get; set; } // Nom complet du patient, peut être nul
 
+        public string Speciality { get; set; } // Spécialité du docteur
+
+        public string? DocumentPath { get; set; } // Path for the document
+
+        // Méthode de mappage de l'entité Appointment vers AppointmentDTO
         public static AppointmentDTO FromAppointment(Appointment appointment)
         {
             return new AppointmentDTO
@@ -37,7 +40,10 @@ namespace AppointmentDoctor.DTO
                 Notes = appointment.Notes,
                 DoctorId = appointment.DoctorId,
                 PatientId = appointment.PatientId,
-                DoctorName = $"{appointment.Doctor.FirstName} {appointment.Doctor.LastName}",
+                DoctorName = $"{appointment.Doctor?.FirstName} {appointment.Doctor?.LastName}",
+                PatientName = appointment.Patient != null ? $"{appointment.Patient.FirstName} {appointment.Patient.LastName}" : null,
+                Speciality = appointment.Doctor?.Speciality ?? "N/A",
+                DocumentPath = appointment.DocumentPath // Ajout du document si disponible
             };
         }
     }

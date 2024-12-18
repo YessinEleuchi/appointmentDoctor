@@ -12,7 +12,7 @@ namespace AppointmentDoctor.Models
         public string UserId { get; set; }
 
         [ForeignKey("UserId")]
-         public virtual ApplicationUser Patient { get; set; }
+        public virtual ApplicationUser Patient { get; set; }
 
         [Required]
         [DataType(DataType.Date)]

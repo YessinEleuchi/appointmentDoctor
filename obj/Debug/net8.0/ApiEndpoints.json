@@ -61,24 +61,63 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "model",
-        "Type": "AppointmentDoctor.DTO.RegisterDoctor",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AccountController",
-    "Method": "SearchDoctors",
-    "RelativePath": "api/Account/SearchDoctors",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "critere",
+        "Name": "Username",
         "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "FirstName",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "LastName",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Adress",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Password",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Email",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "PhoneNumber",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Speciality",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Gender",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Fees",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "Experience",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "ProfileImage",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
         "IsRequired": false
       }
     ],
@@ -235,9 +274,19 @@
         "IsRequired": true
       },
       {
-        "Name": "appointment",
-        "Type": "AppointmentDoctor.DTO.BookAppointmentDTO",
-        "IsRequired": true
+        "Name": "AppointmentID",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PatientId",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Document",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -265,6 +314,22 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.AuthenticationController",
+    "Method": "ForgotPassword",
+    "RelativePath": "api/Authentication/ForgotPassword",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "AppointmentDoctor.DTO.ForgotPasswordDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AuthenticationController",
     "Method": "Login",
     "RelativePath": "api/Authentication/Login",
     "HttpMethod": "POST",
@@ -281,12 +346,18 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.AuthenticationController",
-    "Method": "Logout",
-    "RelativePath": "api/Authentication/Logout",
+    "Method": "ResetPassword",
+    "RelativePath": "api/Authentication/ResetPassword",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "AppointmentDoctor.DTO.ResetPasswordDTO",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {
@@ -444,18 +515,8 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.UserController",
-    "Method": "GetProfileDetails",
-    "RelativePath": "api/User",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.UserController",
     "Method": "DeleteUser",
-    "RelativePath": "api/User/DeleteUser",
+    "RelativePath": "api/User/DeleteUser/{username}",
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
@@ -463,9 +524,19 @@
       {
         "Name": "username",
         "Type": "System.String",
-        "IsRequired": false
+        "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.UserController",
+    "Method": "GetAllDoctors",
+    "RelativePath": "api/User/GetAllDoctors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -484,6 +555,48 @@
       {
         "Name": "pageSize",
         "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.UserController",
+    "Method": "GetDoctorsBySpeciality",
+    "RelativePath": "api/User/GetDoctorsBySpeciality",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "speciality",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.UserController",
+    "Method": "GetProfileDetails",
+    "RelativePath": "api/User/GetProfileDetails",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.UserController",
+    "Method": "SearchDoctors",
+    "RelativePath": "api/User/SearchDoctors",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "critere",
+        "Type": "System.String",
         "IsRequired": false
       }
     ],

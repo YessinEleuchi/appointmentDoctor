@@ -4,14 +4,11 @@ namespace AppointmentDoctor.DTO
 {
     public class BookAppointmentDTO
     {
-        [Required]
+        [Required(ErrorMessage = "L'ID du rendez-vous est requis.")]
         public int AppointmentID { get; set; }
-        [Required]
-        public string Status { get; set; } 
 
-        public string? PatientId { get; set; } 
+        public string? PatientId { get; set; }
+        public IFormFile? Document { get; set; } // Nouveau champ pour le fichier (PDF, JPG, JPEG, etc.)
 
-       
     }
 }
-
