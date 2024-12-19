@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\images\doctors\2844a716-e71d-45ee-9e9e-e05e50cd5fef.png" />
+    <Content Remove="wwwroot\images\doctors\67b00410-aff9-4f58-a70b-ee5c6a6d13a1.png" />
+    <Content Remove="wwwroot\images\doctors\b455fe99-baa0-4535-9ff4-a6350db87c03.jpg" />
+    <Content Remove="wwwroot\images\doctors\d54841d7-bf52-4399-8c34-e22e63f6d8c8.png" />
+    <Content Remove="wwwroot\images\doctors\e0578668-0421-46eb-8cda-8e3707966c34.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />

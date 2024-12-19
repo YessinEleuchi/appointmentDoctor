@@ -178,6 +178,22 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.AppointmentsController",
+    "Method": "GetAppointmentDocument",
+    "RelativePath": "api/Appointments/{appointmentId}/document",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "appointmentId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AppointmentsController",
     "Method": "GetAppointment",
     "RelativePath": "api/Appointments/{id}",
     "HttpMethod": "GET",
@@ -236,32 +252,6 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.AppointmentsController",
-    "Method": "GetAvailableAppointmentsBySpeciality",
-    "RelativePath": "api/Appointments/Available/BySpeciality/{speciality}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "speciality",
-        "Type": "System.String",
-        "IsRequired": true
-      },
-      {
-        "Name": "pageNumber",
-        "Type": "System.Int32",
-        "IsRequired": false
-      },
-      {
-        "Name": "pageSize",
-        "Type": "System.Int32",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "AppointmentDoctor.Controllers.AppointmentsController",
     "Method": "BookAppointment",
     "RelativePath": "api/Appointments/Book/{id}",
     "HttpMethod": "PUT",
@@ -287,6 +277,43 @@
         "Name": "Document",
         "Type": "Microsoft.AspNetCore.Http.IFormFile",
         "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AppointmentsController",
+    "Method": "GetScheduledAppointmentsByDoctor",
+    "RelativePath": "api/Appointments/doctor-appointments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "pageNumber",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.AppointmentsController",
+    "Method": "GetDoctorById",
+    "RelativePath": "api/Appointments/GetDoctorById/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
       }
     ],
     "ReturnTypes": []
@@ -562,6 +589,22 @@
   },
   {
     "ContainingType": "AppointmentDoctor.Controllers.UserController",
+    "Method": "GetDoctorById",
+    "RelativePath": "api/User/GetDoctorById/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.UserController",
     "Method": "GetDoctorsBySpeciality",
     "RelativePath": "api/User/GetDoctorsBySpeciality",
     "HttpMethod": "GET",
@@ -584,6 +627,22 @@
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AppointmentDoctor.Controllers.UserController",
+    "Method": "GetUserById",
+    "RelativePath": "api/User/GetUserById/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
     "ReturnTypes": []
   },
   {

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 
 
 
@@ -19,14 +20,16 @@ namespace AppointmentDoctor.Controllers
         private readonly IAppointmentRepository appointmentRepository;
         private readonly AppDbContext context;
         private readonly IMapper mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
 
 
-        public AppointmentsController(IAppointmentRepository appointmentRepository, AppDbContext context, IMapper mapper)
+
+        public AppointmentsController(IAppointmentRepository appointmentRepository, AppDbContext context, IMapper mapper, UserManager<ApplicationUser> userManager)
         {
             this.appointmentRepository = appointmentRepository;
             this.context = context;
             this.mapper = mapper; // Initialisation de l'instance IMapper
-
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -77,26 +80,27 @@ namespace AppointmentDoctor.Controllers
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var appointment = await appointmentRepository.GetByIdAsync(appointmentId);
                 if (appointment == null)
                 {
                     return NotFound();
                 }
 
-                if (!User.IsInRole("Admin") && !appointment.PatientId.Equals(userId) && !appointment.DoctorId.Equals(userId))
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!User.IsInRole("Admin") && appointment.PatientId != userId && appointment.DoctorId != userId)
                 {
-                    return Unauthorized("You Are Not Authorized to View this Appointment");
+                    return Unauthorized("You are not authorized to view this appointment.");
                 }
 
-                AppointmentDTO appointmentDTO = mapper.Map<AppointmentDTO>(appointment);
+                var appointmentDTO = mapper.Map<AppointmentDTO>(appointment);
                 return Ok(appointmentDTO);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { error = ex.Message });
             }
         }
+
 
         /// <summary>
         /// Get a paginated list of available appointments for scheduling.
@@ -140,33 +144,7 @@ namespace AppointmentDoctor.Controllers
         /// <param name="pageSize">The number of appointments to include per page (default is 10).</param>
         /// <returns>A paginated list of available appointments for the specified specialty.</returns>
         // GET: api/appointments/Available/BySpeciality/{speciality}?pageNumber=2&pageSize=20
-        [HttpGet("Available/BySpeciality/{speciality}")]
-        public async Task<IActionResult> GetAvailableAppointmentsBySpeciality(
-            [FromRoute] string speciality,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10
-            )
-        {
-            try
-            {
-                var appointments = await appointmentRepository.GetAvailableBySpecialityAsync(speciality, pageNumber, pageSize);
 
-                if (appointments == null)
-                    return NotFound();
-
-                var appointmentDTOs = mapper.Map<List<AppointmentDTO>>(appointments);
-                foreach (var item in appointments)
-                {
-                    appointmentDTOs.Add(AppointmentDTO.FromAppointment(item));
-                }
-
-                return Ok(appointmentDTOs);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
 
 
         /// <summary>
@@ -287,13 +265,13 @@ namespace AppointmentDoctor.Controllers
         // PUT: api/appointments/Book/1
         [HttpPut("Book/{id}")]
         [Authorize]
-        public async Task<IActionResult> BookAppointment(int id, BookAppointmentDTO appointment)
+        public async Task<IActionResult> BookAppointment(int id, [FromForm] BookAppointmentDTO appointment)
         {
             try
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { error = string.Join(", ", ModelState.Values.Select(v => v.Errors.Select(e => e.ErrorMessage))) });
+                    return BadRequest(new { error = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)) });
                 }
 
                 var patientId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -302,31 +280,54 @@ namespace AppointmentDoctor.Controllers
                     return Unauthorized(new { error = "Please log in again." });
                 }
 
-                // Retrieve the appointment from the database
                 var existingAppointment = await appointmentRepository.GetByIdAsync(id);
                 if (existingAppointment == null)
                 {
                     return NotFound(new { error = "Appointment not found." });
                 }
 
-                // Check if the appointment is available
                 if (existingAppointment.Status != "Available")
                 {
                     return BadRequest(new { error = "The appointment is not available for booking." });
                 }
 
-                // Update the appointment details
-                existingAppointment.PatientId = patientId; // Assign the current user as the patient
-                existingAppointment.Status = "Scheduled"; // Update the status to "Scheduled"
+                // Handling the uploaded document
+                if (appointment.Document != null)
+                {
+                    // Générer le chemin complet du dossier
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "UploadedDocuments");
 
-                // Save the changes to the database
+                    // Vérifier si le dossier existe, sinon le créer
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    // Générer un nom unique pour le fichier
+                    var uniqueFileName = $"{Guid.NewGuid()}_{appointment.Document.FileName}";
+                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    // Enregistrer le fichier dans le dossier
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await appointment.Document.CopyToAsync(stream);
+                    }
+
+                    // Enregistrer le chemin dans la base de données ou effectuer d'autres actions
+                    existingAppointment.Notes = $"Document Path: {filePath}";
+
+                }
+
+                existingAppointment.PatientId = patientId;
+                existingAppointment.Status = "Scheduled";
+
                 await appointmentRepository.UpdateAsync(existingAppointment);
 
                 return Ok(new { message = "Appointment booked successfully." });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = "Something went wrong, please try again later." });
+                return BadRequest(new { error = $"Something went wrong: {ex.Message}" });
             }
         }
 
@@ -379,5 +380,114 @@ namespace AppointmentDoctor.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        /// <summary>
+        /// Get a paginated list of scheduled appointments for a doctor.
+        /// </summary>
+        /// <param name="pageNumber">The page number for pagination (default is 1).</param>
+        /// <param name="pageSize">The number of appointments per page (default is 10).</param>
+        /// <returns>A paginated list of scheduled appointments for the doctor.</returns>
+        [HttpGet("doctor-appointments")]
+        [Authorize(Roles = "doctor")]
+        public async Task<IActionResult> GetScheduledAppointmentsByDoctor(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var doctorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(doctorId))
+                    return Unauthorized("You must be logged in as a doctor to access this endpoint.");
+
+                var appointments = await appointmentRepository.GetScheduledByDoctorIdAsync(doctorId, pageNumber, pageSize);
+
+                if (!appointments.Any())
+                    return NotFound("No scheduled appointments found for this doctor.");
+
+                var appointmentDTOs = appointments.Select(a => mapper.Map<AppointmentDTO>(a)).ToList();
+
+                return Ok(appointmentDTOs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving doctor's appointments: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Download the document associated with an appointment.
+        /// </summary>
+        /// <param name="appointmentId">The ID of the appointment.</param>
+        /// <returns>A file stream for the document if it exists.</returns>
+        [HttpGet("{appointmentId}/document")]
+        [Authorize]
+        public async Task<IActionResult> GetAppointmentDocument(int appointmentId)
+        {
+            try
+            {
+                var appointment = await appointmentRepository.GetByIdAsync(appointmentId);
+                if (appointment == null)
+                    return NotFound("Appointment not found.");
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (appointment.PatientId != userId && appointment.DoctorId != userId && !User.IsInRole("admin"))
+                    return Unauthorized("You do not have access to this appointment's document.");
+
+                var documentPath = await appointmentRepository.GetAppointmentDocumentPathAsync(appointmentId);
+                if (string.IsNullOrEmpty(documentPath) || !System.IO.File.Exists(documentPath))
+                    return NotFound("No document found for this appointment.");
+
+                var fileBytes = await System.IO.File.ReadAllBytesAsync(documentPath);
+                var fileName = Path.GetFileName(documentPath);
+
+                return File(fileBytes, "application/octet-stream", fileName);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error retrieving appointment document: {ex.Message}");
+            }
+        }
+        [HttpGet("GetDoctorById/{id}")]
+        public async Task<IActionResult> GetDoctorById(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest(new { message = "L'ID est requis." });
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { message = "Médecin non trouvé." });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            if (!roles.Contains("doctor"))
+            {
+                return BadRequest(new { message = "L'utilisateur spécifié n'est pas un médecin." });
+            }
+
+            // Récupérer les rendez-vous disponibles créés par ce médecin
+            var availableAppointments = await appointmentRepository.GetAvailableAppointmentsByDoctorIdAsync(id);
+
+            var appointmentDTOs = availableAppointments.Select(a => mapper.Map<AppointmentDTO>(a)).ToList();
+
+            return Ok(new
+            {
+                user.Id,
+                user.FirstName,
+                user.LastName,
+                user.Email,
+                user.PhoneNumber,
+                user.Speciality,
+                user.Adress,
+                user.ProfileImagePath,
+                user.Experience,
+                user.Fees,
+                AvailableAppointments = appointmentDTOs
+            });
+        }
+
     }
 }

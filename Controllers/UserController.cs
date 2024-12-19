@@ -160,7 +160,6 @@ namespace AppointmentDoctor.Controllers
 
         // Obtenir tous les médecins
         [HttpGet("GetAllDoctors")]
-        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAllDoctors()
         {
             // Récupérer tous les utilisateurs ayant le rôle 'doctor'
@@ -180,7 +179,9 @@ namespace AppointmentDoctor.Controllers
                         user.Email,
                         user.PhoneNumber,
                         user.Speciality,
-                        user.Adress
+                        user.Adress,
+                        user.ProfileImagePath,
+                        user.Experience
                     });
                 }
             }
@@ -279,6 +280,73 @@ namespace AppointmentDoctor.Controllers
 
             return Ok(doctorList);
         }
+        // Obtenir un médecin par ID
+        [HttpGet("GetDoctorById/{id}")]
+
+        public async Task<IActionResult> GetDoctorById(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest(new { message = "L'ID est requis." });
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { message = "Médecin non trouvé." });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            if (!roles.Contains("doctor"))
+            {
+                return BadRequest(new { message = "L'utilisateur spécifié n'est pas un médecin." });
+            }
+
+            return Ok(new
+            {
+                user.Id,
+                user.FirstName,
+                user.LastName,
+                user.Email,
+                user.PhoneNumber,
+                user.Speciality,
+                user.Adress,
+                user.ProfileImagePath,
+                user.Experience,
+                user.Fees
+            });
+        }
+
+        // Obtenir un utilisateur par ID (accessible uniquement aux administrateurs)
+        [HttpGet("GetUserById/{id}")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> GetUserById(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return BadRequest(new { message = "L'ID est requis." });
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { message = "Utilisateur non trouvé." });
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return Ok(new
+            {
+                user.Id,
+                user.FirstName,
+                user.LastName,
+                user.Email,
+                user.PhoneNumber,
+                user.Adress,
+                Roles = roles
+            });
+        }
+
 
     }
 }
